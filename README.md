@@ -1,151 +1,31 @@
-PizzaApp
 
-PizzaApp, ASP.NET Core Blazor Server kullanılarak geliştirilmiş bir pizza sipariş uygulamasıdır. Kullanıcıların farklı pizza seçeneklerini görüntüleyebildiği, pizza boyutu ve malzemelerini seçerek sipariş oluşturabildiği bir web uygulamasıdır.
+# Contributing
 
-Uygulama, Entity Framework Core kullanarak veritabanı işlemlerini yönetir ve SQLite veritabanı ile çalışır. Proje ayrıca başlangıç verilerinin otomatik olarak eklenmesini sağlayan bir SeedData mekanizması içerir.
+This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
-Özellikler
+When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
 
-Pizza menüsünü listeleme
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-Farklı pizza boyutları seçebilme
+# Legal Notices
 
-Ek malzemeler (toppings) ekleyebilme
+Microsoft and any contributors grant you a license to the Microsoft documentation and other content
+in this repository under the [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode),
+see the [LICENSE](LICENSE) file, and grant you a license to any code in the repository under the [MIT License](https://opensource.org/licenses/MIT), see the
+[LICENSE-CODE](LICENSE-CODE) file.
 
-Sipariş oluşturma
+Microsoft, Windows, Microsoft Azure and/or other Microsoft products and services referenced in the documentation
+may be either trademarks or registered trademarks of Microsoft in the United States and/or other countries.
+The licenses for this project do not grant you rights to use any Microsoft names, logos, or trademarks.
+Microsoft's general trademark guidelines can be found at http://go.microsoft.com/fwlink/?LinkID=254653.
 
-Sipariş durumunu takip edebilme
+Privacy information can be found at https://privacy.microsoft.com/en-us/
 
-Veritabanına otomatik başlangıç verisi ekleme
-
-Entity Framework Core Migration desteği
-
-Kullanılan Teknolojiler
-
-ASP.NET Core Blazor Server
-
-Entity Framework Core
-
-SQLite
-
-C#
-
-Razor Components
-
-Proje Yapısı
-PizzaApp
-│
-
-├── Data
-
-│   └── PizzaContext.cs        → Entity Framework veritabanı bağlamı
-
-│
-
-├── Model
-
-│   ├── Pizza.cs               → Pizza modeli
-
-│   ├── PizzaSpecial.cs        → Özel pizza tanımları
-
-│   ├── PizzaSize.cs           → Pizza boyutları
-
-│   ├── PizzaTopping.cs        → Pizza ve malzeme ilişkisi
-
-│   ├── Topping.cs             → Malzemeler
-
-│   ├── Order.cs               → Sipariş modeli
-
-│   ├── OrderSubmission.cs     → Sipariş gönderimi modeli
-
-│   ├── OrderWithStatus.cs     → Sipariş durumu modeli
-
-│   ├── Address.cs             → Adres bilgisi
-
-│   └── UserInfo.cs            → Kullanıcı bilgisi
-
-│
-
-├── Migrations
-
-│   └── Veritabanı migration dosyaları
-
-│
-
-└── Program.cs
-
-    → Uygulama başlangıç noktası
-Veritabanı
-
-Uygulama SQLite kullanmaktadır.
-
-Veritabanı dosyası:
-
-pizza.db
-
-Uygulama çalıştığında:
-
-Migration işlemleri uygulanır.
-
-Eğer veritabanında veri yoksa başlangıç pizzaları eklenir.
-
-Bu işlem PizzaContext.SeedData() metodu ile yapılır.
-
-Kurulum
-
-Projeyi çalıştırmak için aşağıdaki adımları takip edebilirsiniz.
-
-1. Projeyi klonlayın
-git clone https://github.com/kullaniciadi/PizzaApp.git
-2. Proje klasörüne girin
-cd PizzaApp
-3. Bağımlılıkları yükleyin
-dotnet restore
-4. Uygulamayı çalıştırın
-dotnet run
-Migration İşlemleri
-
-Yeni migration oluşturmak için:
-
-dotnet ef migrations add MigrationAdi
-
-Veritabanını güncellemek için:
-
-dotnet ef database update
-Uygulama Akışı
-
-Kullanıcı pizza menüsünü görüntüler.
-
-Pizza seçilir.
-
-Boyut ve malzemeler belirlenir.
-
-Sipariş oluşturulur.
-
-Sipariş veritabanına kaydedilir.
-
-Sipariş durumu takip edilebilir.
-
-Geliştirme Notları
-
-Proje Blazor Server mimarisini kullanır.
-
-Veritabanı işlemleri Entity Framework Core ile yapılmaktadır.
-
-Başlangıç verileri SeedData yöntemi ile otomatik yüklenir.
-
-Veritabanı şeması Migration sistemi ile yönetilir.
-
-Gelecek Geliştirmeler
-
-Kullanıcı hesap sistemi
-
-Sipariş geçmişi
-
-Ödeme entegrasyonu
-
-Admin paneli
-
-Pizza özelleştirme geliştirmeleri
-
-REST API desteği
+Microsoft and any contributors reserve all other rights, whether under their respective copyrights, patents,
+or trademarks, whether by implication, estoppel or otherwise.
