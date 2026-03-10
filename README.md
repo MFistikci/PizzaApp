@@ -35,25 +35,45 @@ Razor Components
 Proje Yapısı
 PizzaApp
 │
+
 ├── Data
+
 │   └── PizzaContext.cs        → Entity Framework veritabanı bağlamı
+
 │
+
 ├── Model
+
 │   ├── Pizza.cs               → Pizza modeli
+
 │   ├── PizzaSpecial.cs        → Özel pizza tanımları
+
 │   ├── PizzaSize.cs           → Pizza boyutları
+
 │   ├── PizzaTopping.cs        → Pizza ve malzeme ilişkisi
+
 │   ├── Topping.cs             → Malzemeler
+
 │   ├── Order.cs               → Sipariş modeli
+
 │   ├── OrderSubmission.cs     → Sipariş gönderimi modeli
+
 │   ├── OrderWithStatus.cs     → Sipariş durumu modeli
+
 │   ├── Address.cs             → Adres bilgisi
+
 │   └── UserInfo.cs            → Kullanıcı bilgisi
+
 │
+
 ├── Migrations
+
 │   └── Veritabanı migration dosyaları
+
 │
+
 └── Program.cs
+
     → Uygulama başlangıç noktası
 Veritabanı
 
