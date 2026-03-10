@@ -1,0 +1,117 @@
+@inject HttpClient HttpClient
+
+<div class="dialog-container">
+    <div class="dialog">
+        <div class="dialog-title">
+            <h2>@Pizza.Special.Name</h2>
+            @Pizza.Special.Description
+        </div>
+        <form class="dialog-body">
+            <div class="size-section">
+                <label>Ebat:</label>
+                <div class="size-options">
+                    <button 
+                        type="button"
+                        class="size-btn @(Pizza.Size == 9 ? "active" : "")"
+                        @onclick="@(() => Pizza.Size = 9)">
+                        Küçük (9')
+                    </button>
+                    <button 
+                        type="button"
+                        class="size-btn @(Pizza.Size == 12 ? "active" : "")"
+                        @onclick="@(() => Pizza.Size = 12)">
+                        Orta (12')
+                    </button>
+                    <button 
+                        type="button"
+                        class="size-btn @(Pizza.Size == 17 ? "active" : "")"
+                        @onclick="@(() => Pizza.Size = 17)">
+                        Büyük (17')
+                    </button>
+                </div>
+                <span class="size-label">
+                    Fiyat: TL@(Pizza.GetFormattedTotalPrice())
+                </span>
+            </div>
+            
+            <div class="toppings-section">
+                <label>Ek Malzeme (10 TL):</label>
+                <div class="toppings-list">
+                    @if (availableToppings != null && availableToppings.Count > 0)
+                    {
+                        @foreach (var topping in availableToppings)
+                        {
+                            <div class="topping-item">
+                                <input 
+                                    type="checkbox" 
+                                    id="topping_@topping.Id"
+                                    @onchange="@((ChangeEventArgs e) => HandleToppingChange(topping, (bool)e.Value))"
+                                />
+                                <label for="topping_@topping.Id">@topping.Name</label>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </form>
+
+        <div class="dialog-buttons">
+            <button class="btn btn-secondary mr-auto" @onclick="OnCancel">İptal</button>
+            <span class="mr-center">
+                Fiyat: <span class="price">TL@(Pizza.GetFormattedTotalPrice())</span>
+            </span>
+            <button class="btn btn-success ml-auto" @onclick="OnConfirm">Sipariş Ver ></button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Pizza Pizza { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+    private List<Topping> availableToppings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Pizza != null && Pizza.Size == 0)
+        {
+            Pizza.Size = Pizza.DefaultSize;
+        }
+        if (Pizza != null && Pizza.Toppings == null)
+        {
+            Pizza.Toppings = new List<PizzaTopping>();
+        }
+
+        // Load available toppings
+        try
+        {
+            availableToppings = await HttpClient.GetFromJsonAsync<List<Topping>>("toppings.json");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading toppings: {ex.Message}");
+        }
+    }
+
+    private void HandleToppingChange(Topping topping, bool isChecked)
+    {
+        if (Pizza.Toppings == null)
+        {
+            Pizza.Toppings = new List<PizzaTopping>();
+        }
+
+        var existingTopping = Pizza.Toppings.FirstOrDefault(t => t.Topping?.Id == topping.Id);
+
+        if (isChecked && existingTopping == null)
+        {
+            // Add topping
+            Pizza.Toppings.Add(new PizzaTopping { Topping = topping, ToppingId = topping.Id });
+        }
+        else if (!isChecked && existingTopping != null)
+        {
+            // Remove topping
+            Pizza.Toppings.Remove(existingTopping);
+        }
+    }
+}

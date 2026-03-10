@@ -1,0 +1,89 @@
+@page "/"
+@using Microsoft.EntityFrameworkCore
+@using PizzaApp.Model
+@using PizzaApp.Data
+@using PizzaApp
+@using PizzaApp.Services
+@inject PizzaContext Db
+@inject OrderState OrderState
+
+<div class="content-wrapper">
+    <div class="main">
+
+        <ul class="pizza-cards">
+            @if (specials == null)
+            {
+                <li>Yükleniyor...</li>
+            }
+            else
+            {
+                @foreach (var special in specials)
+                {
+                    <li @onclick="@(() => OrderState.ShowConfigurePizzaDialog(special))"
+                        style="background-image: url('@special.ImageUrl')">
+                        <div class="pizza-info">
+                            <span class="title">@special.Name</span>
+                            @special.Description
+                            <span class="price">@special.GetFormattedBasePrice()</span>
+                        </div>
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+
+    <div class="sidebar">
+        <div class="order-summary">
+            <h2>Siparişiniz</h2>
+            @if (order.Pizzas.Any())
+            {
+                <ul class="order-list">
+                    @foreach (var configuredPizza in order.Pizzas)
+                    {
+                        <li>
+                            <div class="order-item">
+                                <div class="item-details">
+                                    <span class="pizza-name">@configuredPizza.Special.Name</span>
+                                    <span class="pizza-size">Boyut @configuredPizza.Size</span>
+                                    <span class="pizza-price">@configuredPizza.GetFormattedTotalPrice()</span>
+                                </div>
+                                <a @onclick="@(() => OrderState.RemoveConfiguredPizza(configuredPizza))" class="delete-item">x</a>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <div class="order-total">
+                    <span>Toplam:</span>
+                    <span class="total-price">@order.GetFormattedTotalPrice()</span>
+                </div>
+                <a class="btn-order" href="checkout">Sipariş Ver &gt;</a>
+            }
+            else
+            {
+                <p class="empty-message">Pizza seçin başlamak için</p>
+            }
+        </div>
+    </div>
+</div>
+
+@if (OrderState.ShowingConfigureDialog)
+{
+    <ConfigurePizzaDialog
+        Pizza="OrderState.ConfiguringPizza"
+        OnCancel="OrderState.CancelConfigurePizzaDialog"
+        OnConfirm="OrderState.ConfirmConfigurePizzaDialog" />
+}
+
+@code {
+    List<PizzaSpecial>? specials;
+
+    Order order => OrderState.Order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        specials = await Db.Specials
+            .AsNoTracking()
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+    }
+}

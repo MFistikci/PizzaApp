@@ -1,0 +1,194 @@
+@page "/checkout"
+@using PizzaApp
+@using PizzaApp.Model
+@using PizzaApp.Services
+@using PizzaApp.Data
+@using Microsoft.EntityFrameworkCore
+@inject OrderState OrderState
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject PizzaContext Db
+
+<div class="main">
+    <h1>Sipariş Özeti</h1>
+
+    @if (!submitted)
+    {
+        <EditForm Model="submission" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>İsim</label>
+                <InputText class="form-control" @bind-Value="submission.Name" />
+            </div>
+
+            <div class="form-group">
+                <label>E-posta</label>
+                <InputText class="form-control" @bind-Value="submission.Email" />
+            </div>
+
+            <div class="form-group">
+                <label>Adres</label>
+                <InputTextArea class="form-control" @bind-Value="submission.Address" />
+            </div>
+
+            <h3>Sepet</h3>
+            @if (OrderState.Order.Pizzas?.Count > 0)
+            {
+                <ul>
+                    @foreach (var p in OrderState.Order.Pizzas)
+                    {
+                        <li>@p.Special.Name - @(GetSizeName(p.Size)) - TL@(p.GetFormattedTotalPrice())</li>
+                    }
+                </ul>
+                <div class="order-total">
+                    <strong>Toplam:</strong> TL@(OrderState.Order.GetFormattedTotalPrice())
+                </div>
+            }
+            else
+            {
+                <p>Sepetiniz boş.</p>
+            }
+
+            <button class="btn btn-success" type="submit">Siparişi Tamamla</button>
+            <button class="btn btn-secondary ml-2" type="button" @onclick="GoBack">Geri</button>
+        </EditForm>
+    }
+    else
+    {
+        <div class="order-confirmation">
+            <h2>Sipariş Alındı</h2>
+            <p>Sipariş Numaranız: <strong>@submission.OrderNumber</strong></p>
+
+            <h3>Sipariş Özeti</h3>
+            <p>İsim: @submission.Name</p>
+            <p>E-posta: @submission.Email</p>
+            <p>Adres: @submission.Address</p>
+
+            <h4>Ürünler</h4>
+            <ul>
+                @foreach (var p in submission.Pizzas)
+                {
+                    <li>@p.Special.Name - @(GetSizeName(p.Size)) - TL@(p.GetFormattedTotalPrice())</li>
+                }
+            </ul>
+            <div class="order-total">
+                <strong>Toplam:</strong> TL@(OrderState.Order.GetFormattedTotalPrice())
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private OrderSubmission submission = new OrderSubmission();
+    private bool submitted = false;
+
+    protected override void OnInitialized()
+    {
+        // UI'da gosterilecek ozet icin kopya
+        submission.Pizzas = OrderState.Order.Pizzas.ToList();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (OrderState.Order.Pizzas == null || OrderState.Order.Pizzas.Count == 0)
+            return;
+
+        // UI / localstorage icin siparis no (DB'de OrderNumber alani yok)
+        var rnd = new Random();
+        submission.OrderNumber = $"PZ-{DateTime.UtcNow:yyyy}-{rnd.Next(100, 999)}";
+
+        // ---- 1) Address entity (alan adlarini sende nasilsa ona gore uyarlayacaksin) ----
+        var address = new Address
+        {
+            // ornek atamalar:
+            // Name = submission.Name,
+            // Email = submission.Email,
+            // Line1 = submission.Address
+
+            // eger Address sinifinda tek bir metin alani varsa (ornegin FullAddress):
+            // FullAddress = submission.Address
+
+            // SENDEKI Address PROPERTY'LERINE GORE DUZENLE
+        };
+
+        // ---- 2) Order entity (senin Order.cs ile uyumlu) ----
+        var yeniSiparis = new Order
+        {
+            CreatedTime = DateTime.UtcNow,
+            DeliveryAddress = address,
+            Pizzas = new List<Pizza>()
+            // UserId varsa ve login yoksa bos birakabilirsin.
+            // UserId = submission.Email (istersen gecici olarak)
+        };
+
+        // ---- 3) Pizzalari DB entity'ye cevir ----
+        foreach (var p in OrderState.Order.Pizzas)
+        {
+            // Special'i DB'den al (Id uzerinden)
+            // p.Special.Id yoksa Name ile eslestirmek gerekir
+            var special = await Db.Specials
+                .AsNoTracking()
+                .FirstAsync(s => s.Id == p.Special.Id);
+
+            var pizzaEntity = new Pizza
+            {
+                Size = p.Size,
+
+                // Pizza modelinde navigation property varsa:
+                Special = special,
+
+                // eger Pizza modelinde FK varsa (SpecialId):
+                // SpecialId = special.Id,
+
+                // toppings iliskisi varsa:
+                // Toppings = new List<PizzaTopping>()
+            };
+
+            // Toppings varsa ve modellerin uyumluysa burayi ac:
+            /*
+            if (p.Toppings != null && p.Toppings.Count > 0)
+            {
+                pizzaEntity.Toppings = new List<PizzaTopping>();
+
+                foreach (var t in p.Toppings)
+                {
+                    pizzaEntity.Toppings.Add(new PizzaTopping
+                    {
+                        ToppingId = t.Topping.Id
+                    });
+                }
+            }
+            */
+
+            yeniSiparis.Pizzas.Add(pizzaEntity);
+        }
+
+        // ---- 4) DB kaydi leading ----
+        Db.Orders.Add(yeniSiparis);
+        await Db.SaveChangesAsync();
+
+        // ---- 5) localStorage'a yaz (opsiyonel) ----
+        var json = System.Text.Json.JsonSerializer.Serialize(submission);
+        await JS.InvokeVoidAsync("localStorage.setItem", "lastOrder", json);
+
+        submitted = true;
+
+        // istersen sepeti temizle (OrderState'de metodun varsa)
+        // OrderState.ResetOrder();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private string GetSizeName(int size) => size switch
+    {
+        9 => "Küçük",
+        12 => "Orta",
+        17 => "Büyük",
+        _ => size.ToString()
+    };
+}
